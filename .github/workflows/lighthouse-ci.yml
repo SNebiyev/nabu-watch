@@ -1,0 +1,49 @@
+name: Lighthouse CI
+
+on:
+  pull_request:
+    paths:
+      - "nabu-ui/**"
+      - ".github/workflows/lighthouse-ci.yml"
+
+concurrency:
+  group: lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lighthouse:
+    name: Run Lighthouse
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: nabu-ui
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: nabu-ui/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: nabu-ui/.next/cache
+          key: nextjs-${{ hashFiles('nabu-ui/package-lock.json') }}-${{ hashFiles('nabu-ui/src/**', 'nabu-ui/next.config.ts') }}
+          restore-keys: |
+            nextjs-${{ hashFiles('nabu-ui/package-lock.json') }}-
+
+      - name: Build
+        env:
+          API_URL: http://127.0.0.1:8080
+          NEXT_PUBLIC_SITE_URL: http://localhost:3000
+          NEXT_PUBLIC_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
+        run: npm run build
+
+      - name: Run Lighthouse CI
+        run: npx lhci autorun

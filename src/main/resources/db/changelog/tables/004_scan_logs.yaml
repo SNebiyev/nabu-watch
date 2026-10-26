@@ -1,0 +1,58 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-create-scan-logs
+      author: nabu
+      comment: Result of every monitor scan.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE scan_logs (
+                  id uuid DEFAULT gen_random_uuid() NOT NULL,
+                  monitor_id uuid NOT NULL,
+                  result_json jsonb,
+                  severity character varying(20) DEFAULT 'INFO' NOT NULL,
+                  created_at timestamp with time zone DEFAULT now() NOT NULL,
+                  batch_id uuid,
+                  trigger_type character varying(20),
+                  triggered_by_user_id uuid,
+                  previous_severity character varying(20),
+                  reported boolean DEFAULT false NOT NULL,
+                  report_notes character varying(2000),
+                  reported_by_user_id uuid,
+                  reported_at timestamp with time zone,
+                  CONSTRAINT scan_logs_pkey PRIMARY KEY (id),
+                  CONSTRAINT fk_scan_logs_monitor_id FOREIGN KEY (monitor_id) REFERENCES monitors (id) ON DELETE CASCADE,
+                  CONSTRAINT fk_scan_logs_reported_by_user_id FOREIGN KEY (reported_by_user_id) REFERENCES users (id) ON DELETE SET NULL,
+                  CONSTRAINT fk_scan_logs_triggered_by_user_id FOREIGN KEY (triggered_by_user_id) REFERENCES users (id)
+              );
+
+              CREATE INDEX idx_scan_logs_batch_id ON scan_logs (batch_id);
+              CREATE INDEX idx_scan_logs_created_at ON scan_logs (created_at);
+              CREATE INDEX idx_scan_logs_monitor_created ON scan_logs (monitor_id, created_at DESC) INCLUDE (severity);
+              CREATE INDEX idx_scan_logs_reported ON scan_logs (reported_at DESC) WHERE reported = true;
+              CREATE INDEX idx_scan_logs_severity ON scan_logs (severity);
+
+  - changeSet:
+      id: 004-create-monitor-status-overrides
+      author: nabu
+      comment: Manual severity override applied to a monitor's latest scan.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE monitor_status_overrides (
+                  id uuid DEFAULT gen_random_uuid() NOT NULL,
+                  monitor_id uuid NOT NULL,
+                  baseline_severity character varying(20) NOT NULL,
+                  override_severity character varying(20) NOT NULL,
+                  scan_log_id uuid NOT NULL,
+                  overridden_by uuid NOT NULL,
+                  overridden_at timestamp with time zone NOT NULL,
+                  note text,
+                  created_at timestamp with time zone DEFAULT now() NOT NULL,
+                  updated_at timestamp with time zone DEFAULT now() NOT NULL,
+                  CONSTRAINT monitor_status_overrides_pkey PRIMARY KEY (id),
+                  CONSTRAINT uq_monitor_status_overrides_monitor_id UNIQUE (monitor_id),
+                  CONSTRAINT fk_monitor_overrides_monitor_id FOREIGN KEY (monitor_id) REFERENCES monitors (id) ON DELETE CASCADE,
+                  CONSTRAINT fk_monitor_overrides_overridden_by FOREIGN KEY (overridden_by) REFERENCES users (id),
+                  CONSTRAINT fk_monitor_overrides_scan_log_id FOREIGN KEY (scan_log_id) REFERENCES scan_logs (id) ON DELETE CASCADE
+              );

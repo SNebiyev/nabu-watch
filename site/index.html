@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nabu Watch - Open-source website compliance monitoring</title>
+<meta name="description" content="Nabu Watch is a self-hostable, Apache-2.0 tool that monitors websites for SSL expiry, legal pages, cookie banners and trackers.">
+<link rel="canonical" href="https://nabu.watch/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#020617">
+<meta name="color-scheme" content="dark">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Nabu Watch">
+<meta property="og:title" content="Nabu Watch - Open-source website compliance monitoring">
+<meta property="og:description" content="Self-hostable, Apache-2.0 tool that monitors websites for SSL expiry, legal pages, cookie banners and trackers.">
+<meta property="og:url" content="https://nabu.watch/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Nabu Watch - Open-source website compliance monitoring">
+<meta name="twitter:description" content="Self-hostable, Apache-2.0 tool that monitors websites for SSL expiry, legal pages, cookie banners and trackers.">
+<script>document.documentElement.className="js"</script>
+<link rel="stylesheet" href="/styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  "name": "Nabu Watch",
+  "description": "Open-source, self-hostable website compliance monitoring: SSL expiry, legal pages, cookie banners and tracker detection.",
+  "url": "https://nabu.watch/",
+  "codeRepository": "https://github.com/SNebiyev/nabu-watch",
+  "license": "https://www.apache.org/licenses/LICENSE-2.0",
+  "programmingLanguage": ["Java", "Go", "TypeScript"],
+  "author": {"@type": "Person", "name": "Samir Nabiyev", "url": "https://github.com/SNebiyev"},
+  "publisher": {"@type": "Organization", "@id": "https://techlab.az/#org", "name": "TechLab", "url": "https://techlab.az/"},
+  "creator": {"@type": "Organization", "@id": "https://techlab.az/#org", "name": "TechLab", "url": "https://techlab.az/"}
+}
+</script>
+</head>
+<body>
+<!-- Icons: Lucide (https://lucide.dev), ISC License, Copyright (c) Lucide Icons and Contributors.
+     Portions derived from Feather, MIT License, Copyright (c) 2013-2023 Cole Bemis. -->
+<svg class="sprite" aria-hidden="true" focusable="false"><defs>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></symbol>
+<symbol id="i-shield-check" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
+<symbol id="i-file-text" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4M10 9H8M16 13H8M16 17H8"/></symbol>
+<symbol id="i-file-warning" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4M12 9v4M12 17h.01"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-bot" viewBox="0 0 24 24"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2M20 14h2M15 13v2M9 13v2"/></symbol>
+<symbol id="i-camera" viewBox="0 0 24 24"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><circle cx="12" cy="13" r="3"/></symbol>
+<symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></symbol>
+<symbol id="i-network" viewBox="0 0 24 24"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3M12 12V8"/></symbol>
+<symbol id="i-code" viewBox="0 0 24 24"><path d="m18 16 4-4-4-4M6 8l-4 4 4 4M14.5 4l-5 16"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+<symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+<symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7M12 19V5"/></symbol>
+<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 12h16M4 6h16M4 18h16"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+<symbol id="i-zap" viewBox="0 0 24 24"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></symbol>
+<symbol id="i-bar-chart" viewBox="0 0 24 24"><path d="M3 3v16a2 2 0 0 0 2 2h16M18 17V9M13 17V5M8 17v-3"/></symbol>
+<symbol id="i-github" viewBox="0 0 24 24"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4M9 18c-4.51 2-5-2-7-2"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></symbol>
+</defs></svg>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav">
+  <div class="wrap">
+    <div class="row">
+      <a class="brand" href="/"><span class="logo"><svg class="i " aria-hidden="true"><use href="#i-shield"/></svg></span><span>nabu<b>.watch</b></span></a>
+      <nav class="links" aria-label="Primary"><a href="#features">Features</a><a href="#security-audit">Security audit</a><a href="#how-it-works">How it works</a><a href="#self-host">Self-host</a><a href="#faq">FAQ</a></nav>
+      <div class="nav-cta">
+        <a class="btn ghost sm" href="https://sprintree.com/p/NABU/pages/1">Docs</a>
+        <a class="btn primary sm" href="https://github.com/SNebiyev/nabu-watch"><svg class="i " aria-hidden="true"><use href="#i-github"/></svg> GitHub</a>
+        <button class="menu-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-nav"><span class="m"><svg class="i " aria-hidden="true"><use href="#i-menu"/></svg></span><span class="x"><svg class="i " aria-hidden="true"><use href="#i-x"/></svg></span></button>
+      </div>
+    </div>
+    <nav class="mobile" id="mobile-nav" aria-label="Mobile"><a href="#features">Features</a><a href="#security-audit">Security audit</a><a href="#how-it-works">How it works</a><a href="#self-host">Self-host</a><a href="#faq">FAQ</a></nav>
+  </div>
+</header>
+
+<main id="main">
+<section class="hero" aria-labelledby="h-hero">
+  <div class="orbs" aria-hidden="true"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+  <div class="glow" aria-hidden="true"><div></div></div>
+  <div class="in">
+    <p class="badge"><span class="dot"></span>Open source · Apache-2.0 · Self-hosted</p>
+    <h1 id="h-hero">Monitor SSL + GDPR compliance for <span class="grad">every website you own</span></h1>
+    <p class="lead">SSL expiry, privacy policy, Impressum, cookie banners and trackers, checked on a schedule across every site you own. Run it on your own server.</p>
+    <p class="cta">
+      <a class="btn primary" href="https://github.com/SNebiyev/nabu-watch">View on GitHub <svg class="i " aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
+      <a class="btn" href="https://sprintree.com/p/NABU/pages/1">Read the docs</a>
+    </p>
+    <p class="fine">Nabu Watch is a project you deploy yourself. There is no hosted service.</p>
+    <div class="demo" id="demo" role="group" aria-label="Sample scan result">
+<div class="d-head"><div><span class="sd am" data-d="dot"></span><span class="d-title" data-d="title">Scan complete</span></div><span class="d-meta" data-d="meta">8 checks · 2.1s</span></div>
+<div class="items" data-d="items"><div class="it"><span class="sd p"></span><span class="n">SSL Certificate</span><span class="d">Valid · 142 days remaining</span><span class="t p">PASS</span></div><div class="it"><span class="sd p"></span><span class="n">Privacy Policy</span><span class="d">Found in footer · Datenschutzerklärung</span><span class="t p">PASS</span></div><div class="it"><span class="sd p"></span><span class="n">Terms of Service</span><span class="d">Found · AGB link verified</span><span class="t p">PASS</span></div><div class="it"><span class="sd f"></span><span class="n">Impressum</span><span class="d">Not found on homepage</span><span class="t f">FAIL</span></div><div class="it"><span class="sd p"></span><span class="n">Cookie Policy</span><span class="d">Cookie-Richtlinie found</span><span class="t p">PASS</span></div><div class="it"><span class="sd p"></span><span class="n">GDPR Request</span><span class="d">Datenschutzanfrage form found</span><span class="t p">PASS</span></div><div class="it"><span class="sd w"></span><span class="n">Cookie Banner</span><span class="d">Banner detected · reject button missing</span><span class="t w">WARN</span></div><div class="it"><span class="sd w"></span><span class="n">Tracker Detection</span><span class="d">2 trackers: Google Analytics, Meta Pixel</span><span class="t w">WARN</span></div></div>
+<div class="ai" data-d="ai"><div class="ai-h"><span class="ai-i"><svg class="i " aria-hidden="true"><use href="#i-bot"/></svg></span><b>AI Analysis (optional)</b><span class="ai-dots" data-d="dots"><i></i><i></i><i></i><span>analyzing</span></span></div><div class="ai-list" data-d="ailist"><p><span class="c-a">→</span> Cookie banner lacks a visible reject/decline button. Users must be able to reject non-essential cookies as easily as accepting them (GDPR Art. 7).</p><p><span class="c-r">→</span> No Impressum page found. It is legally required for commercial websites in DE/AT/CH under TMG §5 and must include company name, address, and contact info.</p><p><span class="c-a">→</span> 2 third-party trackers detected (Google Analytics, Meta Pixel) but not disclosed in the Privacy Policy. GDPR Art. 13 requires listing all data recipients.</p><p><span class="c-g">→</span> Content quality score: 82/100. Privacy Policy and Terms of Service are well-structured and cover the required GDPR disclosure elements.</p></div></div>
+<div class="score" data-d="score"><div class="sc-row"><span>Compliance Score</span><div><span class="grade c-a">B</span><span class="tag a">3 issues</span></div></div><a href="https://github.com/SNebiyev/nabu-watch">Run it on your own sites: view the source on GitHub →</a></div>
+    </div>
+    <p class="demo-note">Sample output with made-up domains.</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="sec" id="features" aria-labelledby="h-features">
+  <div class="inner">
+    <div class="head">
+      <p class="eyebrow">Features</p>
+      <h2 id="h-features">Everything you need for compliance</h2>
+      <p class="sub">One tool to monitor your websites' legal and security compliance, running on your own infrastructure.</p>
+    </div>
+    <ul class="grid c3"><li class="fade" style="transition-delay:0ms"><div class="card"><div class="ico"><svg class="i " aria-hidden="true"><use href="#i-shield"/></svg></div><h3>SSL Monitoring</h3><p>Get alerts before your SSL certificate expires. Never let a lapsed cert take your site offline.</p></div></li><li class="fade" style="transition-delay:100ms"><div class="card"><div class="ico"><svg class="i " aria-hidden="true"><use href="#i-file-text"/></svg></div><h3>Legal Document Detection</h3><p>Automatically finds Privacy Policy, Terms of Service, Impressum, and more across your site.</p></div></li><li class="fade" style="transition-delay:200ms"><div class="card"><div class="ico"><svg class="i " aria-hidden="true"><use href="#i-eye"/></svg></div><h3>Cookie Banner Compliance</h3><p>Verifies GDPR-compliant consent banners with working accept and reject options.</p></div></li><li class="fade" style="transition-delay:300ms"><div class="card"><div class="ico"><svg class="i " aria-hidden="true"><use href="#i-bot"/></svg></div><h3>Optional AI Content Analysis</h3><p>Add your own Claude or Gemini API key to let the scanner verify legal pages and cookie banners with AI, and a Gemini key for fix suggestions on security findings. Everything else works without them.</p></div></li><li class="fade" style="transition-delay:400ms"><div class="card"><div class="ico"><svg class="i " aria-hidden="true"><use href="#i-camera"/></svg></div><h3>Screenshot Evidence</h3><p>Visual proof of compliance status, timestamped and stored in your own object storage for audit trails.</p></div></li><li class="fade" style="transition-delay:500ms"><div class="card"><div class="ico"><svg class="i " aria-hidden="true"><use href="#i-globe"/></svg></div><h3>Multi-Region Support</h3><p>13 regions with native-language keyword detection for localised compliance checking.</p></div></li><li class="fade" style="transition-delay:600ms"><div class="card"><div class="ico"><svg class="i " aria-hidden="true"><use href="#i-shield-check"/></svg></div><h3>Status Override</h3><p>Manually accept scan results you consider valid. Future scans with the same result inherit your decision.</p></div></li></ul>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="sec audit" id="security-audit" aria-labelledby="h-audit">
+  <div class="inner w6">
+    <div class="head tight">
+      <p class="eyebrow amber"><svg class="i " aria-hidden="true"><use href="#i-shield-check"/></svg> Security Audit</p>
+      <h2 id="h-audit">7 security checks, gated by ownership proof</h2>
+      <p class="sub wide">An audit suite on top of compliance monitoring. The checks are owner-triggered and gated by DNS-TXT ownership proof, so nobody can point them at a site they do not control.</p>
+      <p class="pill"><svg class="i " aria-hidden="true"><use href="#i-lock"/></svg> Verified-only · DNS-TXT ownership check</p>
+    </div>
+    <ul class="grid c3"><li class="fade" style="transition-delay:0ms"><div class="card"><div class="ico"><svg class="i " aria-hidden="true"><use href="#i-shield-check"/></svg></div><h3>Security Headers</h3><p>CSP, HSTS, X-Frame-Options and friends. Audit the full browser-hardening set.</p></div></li><li class="fade" style="transition-delay:80ms"><div class="card"><div class="ico"><svg class="i " aria-hidden="true"><use href="#i-file-warning"/></svg></div><h3>Exposed Files</h3><p>Probes .env, .git, backup archives and 20+ other leak-prone paths.</p></div></li><li class="fade" style="transition-delay:160ms"><div class="card"><div class="ico"><svg class="i " aria-hidden="true"><use href="#i-lock"/></svg></div><h3>TLS Grade</h3><p>Protocol version, cipher suite and certificate chain, graded SSL Labs style.</p></div></li><li class="fade" style="transition-delay:240ms"><div class="card"><div class="ico"><svg class="i " aria-hidden="true"><use href="#i-mail"/></svg></div><h3>DNS Hygiene</h3><p>SPF, DMARC, DKIM and CAA records: email-spoofing and misissuance exposure.</p></div></li><li class="fade" style="transition-delay:320ms"><div class="card"><div class="ico"><svg class="i " aria-hidden="true"><use href="#i-network"/></svg></div><h3>Open Ports</h3><p>TCP probe of FTP, SSH, database and alt-HTTP ports that should not be public.</p></div></li><li class="fade" style="transition-delay:400ms"><div class="card"><div class="ico"><svg class="i " aria-hidden="true"><use href="#i-code"/></svg></div><h3>JS Library CVE</h3><p>Scans third-party scripts against known-vulnerable versions (jQuery, Bootstrap, Lodash and more).</p></div></li><li class="fade" style="transition-delay:480ms"><div class="card"><div class="ico"><svg class="i " aria-hidden="true"><use href="#i-search"/></svg></div><h3>Typosquat Watch</h3><p>Permutes your domain and flags registered look-alikes that could be used for phishing.</p></div></li></ul>
+    <div class="trio">
+      <div><strong><span class="ok"><svg class="i " aria-hidden="true"><use href="#i-check"/></svg></span> Ownership-proof gate</strong><p>Every scan requires an active DNS-TXT verification on the domain. No way to weaponise it against a third party.</p></div>
+      <div><strong><span class="am"><svg class="i " aria-hidden="true"><use href="#i-lock"/></svg></span> Owner-triggered only</strong><p>These checks never run on a schedule. They go off only when the verified owner clicks Run scan.</p></div>
+      <div><strong><span class="sk"><svg class="i " aria-hidden="true"><use href="#i-shield"/></svg></span> Open and auditable</strong><p>The source code is public, so you can read exactly what runs against your domain.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="sec alt" id="how-it-works" aria-labelledby="h-how">
+  <div class="inner w5">
+    <div class="head"><p class="eyebrow">How It Works</p><h2 id="h-how">Up and running in minutes</h2></div>
+    <ol class="steps"><li class="step fade" style="transition-delay:0ms"><div class="bx"><svg class="i " aria-hidden="true"><use href="#i-globe"/></svg><span class="num">1</span></div><h3>Deploy it</h3><p>Clone the repository and start the Docker Compose stack, then run the scanner worker on the host.</p></li><li class="step fade" style="transition-delay:150ms"><div class="bx"><svg class="i " aria-hidden="true"><use href="#i-zap"/></svg><span class="num">2</span></div><h3>Add your websites</h3><p>Enter each URL and pick a target region. The scheduler queues scans automatically.</p></li><li class="step fade" style="transition-delay:300ms"><div class="bx"><svg class="i " aria-hidden="true"><use href="#i-bar-chart"/></svg><span class="num">3</span></div><h3>Review the results</h3><p>See compliance status, fix issues, and keep screenshot evidence for your records.</p></li></ol>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="sec alt" id="self-host" aria-labelledby="h-host">
+  <div class="inner w3">
+    <div class="head tight"><p class="eyebrow">Self-host</p><h2 id="h-host">Run it on your own server</h2>
+    <p class="sub">The whole stack is open source and ships as a Docker Compose file.</p></div>
+    <pre class="code" tabindex="0" aria-label="Self-hosting commands"><code><span class="pr">$ </span>git clone https://github.com/SNebiyev/nabu-watch.git
+<span class="pr">$ </span>cd nabu-watch
+<span class="pr">$ </span>cp .env.example .env
+<span class="pr">$ </span>docker compose -f docker-compose.prod.yml up -d</code></pre>
+    <p class="sh-note">The Go scanner worker runs on the host next to Chrome, outside Docker. See the architecture page for how the pieces fit together.</p>
+    <p class="sh-links">
+      <a class="btn sm" href="https://sprintree.com/p/NABU/pages/2">Architecture</a>
+      <a class="btn sm" href="https://sprintree.com/p/NABU/pages/1"><svg class="i " aria-hidden="true"><use href="#i-book"/></svg> Docs overview</a>
+      <a class="btn sm" href="https://github.com/SNebiyev/nabu-watch"><svg class="i " aria-hidden="true"><use href="#i-github"/></svg> Source</a>
+    </p>
+    <p class="resp">Use it responsibly. Read the <a href="https://github.com/SNebiyev/nabu-watch/blob/main/docs/RESPONSIBLE_USE.md">responsible use guidelines</a> before scanning sites you do not own.</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="sec alt" aria-labelledby="h-stats">
+  <div class="inner w5">
+    <h2 class="sm-title" id="h-stats" style="font-size:.875rem;font-weight:500;color:var(--s500)">At a glance</h2>
+    <ul class="stats"><li class="stat fade" style="transition-delay:0ms"><div class="bx"><svg class="i " aria-hidden="true"><use href="#i-globe"/></svg></div><p>13</p><p>Regions</p></li><li class="stat fade" style="transition-delay:100ms"><div class="bx"><svg class="i " aria-hidden="true"><use href="#i-eye"/></svg></div><p>8</p><p>Monitor types</p></li><li class="stat fade" style="transition-delay:200ms"><div class="bx"><svg class="i " aria-hidden="true"><use href="#i-shield-check"/></svg></div><p>7</p><p>Security checks</p></li><li class="stat fade" style="transition-delay:300ms"><div class="bx"><svg class="i " aria-hidden="true"><use href="#i-file-text"/></svg></div><p>Apache-2.0</p><p>License</p></li></ul>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="sec cta-sec" aria-labelledby="h-cta">
+  <div class="glow" aria-hidden="true"><div></div></div>
+  <div class="cta-in fade">
+    <h2 id="h-cta">Ready to secure your compliance?</h2>
+    <p>Nabu Watch is free and open source (Apache-2.0). Clone it, self-host it, and make it yours.</p>
+    <p class="cta">
+      <a class="btn primary" href="https://github.com/SNebiyev/nabu-watch">View on GitHub <svg class="i " aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
+      <a class="btn" href="https://sprintree.com/p/NABU/pages/1">Read the docs</a>
+    </p>
+  </div>
+</section>
+
+<section class="sec" id="faq" aria-labelledby="h-faq">
+  <div class="inner w3">
+    <div class="head tight"><p class="eyebrow">FAQ</p><h2 id="h-faq">Common questions</h2></div>
+    <details><summary>Is there a hosted version of Nabu Watch?</summary><p>No. Nabu Watch is open source (Apache-2.0) and self-hosted only. You run the API, UI, database and scanner worker on your own server.</p></details><details><summary>What do I need to run it?</summary><p>A Linux host with Docker Compose for the stack (reverse proxy, UI, API, PostgreSQL, Redis, MinIO). The Go scanner worker runs on the host as a systemd service because it needs a Chrome binary. The docs describe the full setup.</p></details><details><summary>Which regions and laws does it cover?</summary><p>GDPR (EU/EEA), Germany TMG §5 (Impressum), UK GDPR + PECR, Switzerland nDSG, and ePrivacy variants across DE / FR / ES / IT / NL / PL. SSL checks are region-agnostic.</p></details><details><summary>How are cookie banners scanned?</summary><p>The worker loads the page in a real browser, accepts and rejects the banner programmatically, and verifies that no third-party cookies are dropped before consent. It recognises the most common consent platforms such as OneTrust, Cookiebot, Usercentrics and Iubenda.</p></details><details><summary>Where is my data stored?</summary><p>On your own infrastructure. Scan results live in your PostgreSQL database and screenshots in your MinIO bucket. If you enable the optional AI analysis, page text is sent to the AI provider you configured (Claude or Gemini) with your key.</p></details><details><summary>Can I export findings or hook them into my own tooling?</summary><p>Yes. Outbound webhooks fire for scan results and status changes, so you can feed compliance data into Slack, PagerDuty, Linear or your own dashboard.</p></details><details><summary>How accurate is the AI policy review?</summary><p>The AI is a guide, not a lawyer. It flags clauses that are missing or vague and points you to the relevant GDPR / TMG article. Run material findings past your privacy counsel before publishing changes.</p></details>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="inner">
+    <div class="f-top">
+      <a class="brand" href="/"><span class="logo"><svg class="i " aria-hidden="true"><use href="#i-shield"/></svg></span><span>nabu<b>.watch</b></span></a>
+      <nav class="f-links" aria-label="Footer">
+        <a href="https://github.com/SNebiyev/nabu-watch/blob/main/LICENSE">Apache-2.0 license</a>
+        <a href="https://github.com/SNebiyev/nabu-watch">GitHub</a>
+        <a href="https://sprintree.com/p/NABU/pages/1">Docs</a>
+        <a href="https://github.com/SNebiyev/nabu-watch/blob/main/CONTRIBUTING.md">Contributing</a>
+        <a href="https://github.com/SNebiyev/nabu-watch/blob/main/SECURITY.md">Security policy</a>
+        <a href="https://github.com/SNebiyev/nabu-watch/blob/main/docs/RESPONSIBLE_USE.md">Responsible use</a>
+      </nav>
+    </div>
+    <div class="f-bot">
+      <p>&copy; 2026 Samir Nabiyev</p>
+      <a class="tl-credit" href="https://techlab.az/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><rect width="24" height="24" rx="2" fill="currentColor"/><path d="M24 0v14L10 0z" fill="#FFD21F"/><rect x="5" y="13" width="6" height="6" fill="#020617"/></svg><span>Built by TechLab</span></a>
+    </div>
+  </div>
+</footer>
+
+<button class="totop" type="button" aria-label="Scroll to top"><svg class="i " aria-hidden="true"><use href="#i-arrow-up"/></svg></button>
+<script src="/main.js" defer></script>
+</body>
+</html>

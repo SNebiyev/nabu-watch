@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API (Java 21)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+      # Integration tests start PostgreSQL and Redis through Testcontainers (Docker is preinstalled).
+      - run: ./gradlew test
+
+  worker:
+    name: Worker (Go)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nabu-worker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: nabu-worker/go.mod
+          cache-dependency-path: nabu-worker/go.sum
+      - run: go build ./...
+      - run: go vet ./...
+      - run: go test ./...
+
+  ui:
+    name: UI (Next.js)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nabu-ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: nabu-ui/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run build
+        env:
+          API_URL: http://127.0.0.1:8080
+
+  test-cli:
+    name: nabu-test (Rust)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nabu-test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --locked

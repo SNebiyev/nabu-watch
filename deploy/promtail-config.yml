@@ -1,0 +1,68 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+  log_level: warn
+
+positions:
+  filename: /tmp/promtail-positions.yaml
+
+clients:
+  - url: http://nabu-loki:3100/loki/api/v1/push
+    backoff_config:
+      min_period: 500ms
+      max_period: 5m
+      max_retries: 10
+
+scrape_configs:
+
+  # ── Docker containers (nabu-api, nabu-ui, postgres, redis, minio, etc.) ────
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 10s
+    relabel_configs:
+      # Keep only containers with a name (skip unnamed intermediates)
+      - source_labels: [__meta_docker_container_name]
+        regex: /.+
+        action: keep
+      # Strip leading slash from container name
+      - source_labels: [__meta_docker_container_name]
+        regex: /(.*)
+        target_label: container
+      # Expose compose service name as label
+      - source_labels: [__meta_docker_container_label_com_docker_compose_service]
+        target_label: service
+      # Log stream (stdout / stderr)
+      - source_labels: [__meta_docker_container_log_stream]
+        target_label: stream
+    pipeline_stages:
+      # Try to parse JSON log lines (Java structured logging, Go slog)
+      - json:
+          expressions:
+            detected_level: level
+      # Promote parsed level to a Loki label for filtering
+      - labels:
+          detected_level:
+
+  # ── Go worker (systemd journal) ──────────────────────────────────────────
+  - job_name: nabu-worker-journal
+    journal:
+      max_age: 12h
+      path: /var/log/journal
+      labels:
+        job: nabu-worker
+        service: nabu-worker
+    relabel_configs:
+      # Only collect nabu-worker.service unit
+      - source_labels: [__journal__systemd_unit]
+        regex: nabu-worker\.service
+        action: keep
+      - source_labels: [__journal_priority_keyword]
+        target_label: level
+    pipeline_stages:
+      # Go worker logs are JSON (slog); parse level for filtering
+      - json:
+          expressions:
+            detected_level: level
+      - labels:
+          detected_level:

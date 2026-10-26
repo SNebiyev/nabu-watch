@@ -1,0 +1,380 @@
+@import "tailwindcss";
+
+html {
+    scroll-behavior: smooth;
+}
+
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-success: var(--success);
+    --color-warning: var(--warning);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-muted: var(--sidebar-muted);
+    --radius-xl: var(--radius);
+    --font-sans: var(--font-geist-sans);
+    --font-mono: var(--font-geist-mono);
+}
+
+/* ── Light theme (default) ───────────────────────────────────────────────── */
+
+:root {
+    --background: #f8fafc;
+    --foreground: #0f172a;
+    --card: #ffffff;
+    --card-foreground: #0f172a;
+    --popover: #ffffff;
+    --popover-foreground: #0f172a;
+    --primary: #2563eb;
+    --primary-foreground: #ffffff;
+    --secondary: #f1f5f9;
+    --secondary-foreground: #1e293b;
+    --muted: #f1f5f9;
+    --muted-foreground: #64748b;
+    --accent: #f1f5f9;
+    --accent-foreground: #1e293b;
+    --destructive: #ef4444;
+    --destructive-foreground: #f8fafc;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --border: #e2e8f0;
+    --input: #e2e8f0;
+    --ring: #2563eb;
+    --radius: 0.75rem;
+
+    /* Sidebar tokens — light */
+    --sidebar: #ffffff;
+    --sidebar-foreground: #334155;
+    --sidebar-border: #e2e8f0;
+    --sidebar-accent: #f1f5f9;
+    --sidebar-muted: #94a3b8;
+
+    /* Sidebar width */
+    --sidebar-width: 260px;
+    --sidebar-collapsed-width: 68px;
+}
+
+/* ── Dark theme ──────────────────────────────────────────────────────────── */
+
+@variant dark (&:where(.dark, .dark *));
+
+.dark {
+    --background: #0a0f1a;
+    --foreground: #f1f5f9;
+    --card: #141b2d;
+    --card-foreground: #f1f5f9;
+    --popover: #1a2238;
+    --popover-foreground: #f1f5f9;
+    --primary: #3b82f6;
+    --primary-foreground: #ffffff;
+    --secondary: #1c2538;
+    --secondary-foreground: #e2e8f0;
+    --muted: #1c2538;
+    --muted-foreground: #94a3b8;
+    --accent: #1c2538;
+    --accent-foreground: #e2e8f0;
+    --destructive: #ef4444;
+    --destructive-foreground: #f1f5f9;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --border: #33405e;
+    --input: #3d4c6e;
+    --ring: #3b82f6;
+
+    /* Sidebar tokens — dark */
+    --sidebar: #0d1321;
+    --sidebar-foreground: #cbd5e1;
+    --sidebar-border: #33405e;
+    --sidebar-accent: #1c2538;
+    --sidebar-muted: #64748b;
+}
+
+/* ── Base ────────────────────────────────────────────────────────────────── */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ── Card utility ────────────────────────────────────────────────────────── */
+
+.glass-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.glass-card-elevated {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.dark .glass-card-elevated {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.dark .glass-card {
+    border-color: var(--border);
+}
+
+.dark .glass-card-elevated {
+    border-color: var(--border);
+}
+
+/* ── Status dot glows ────────────────────────────────────────────────────── */
+
+.dot-glow-green {
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.15), 0 0 10px 1px rgba(34, 197, 94, 0.45);
+}
+
+.dot-glow-red {
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15), 0 0 10px 1px rgba(239, 68, 68, 0.45);
+}
+
+.dot-glow-amber {
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15), 0 0 10px 1px rgba(245, 158, 11, 0.45);
+}
+
+.dot-glow-sky {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15), 0 0 10px 1px rgba(59, 130, 246, 0.45);
+}
+
+/* ── Text glow utilities ─────────────────────────────────────────────────── */
+
+.glow-green {
+    text-shadow:
+        0 0 16px rgba(34, 197, 94, 0.55),
+        0 0 40px rgba(34, 197, 94, 0.20);
+}
+
+.glow-blue {
+    text-shadow:
+        0 0 16px rgba(59, 130, 246, 0.55),
+        0 0 40px rgba(59, 130, 246, 0.20);
+}
+
+.glow-red {
+    text-shadow:
+        0 0 14px rgba(239, 68, 68, 0.50),
+        0 0 36px rgba(239, 68, 68, 0.15);
+}
+
+.glow-amber {
+    text-shadow:
+        0 0 14px rgba(245, 158, 11, 0.50),
+        0 0 36px rgba(245, 158, 11, 0.15);
+}
+
+/* ── Dropdown fade-in animation ──────────────────────────────────────────── */
+
+@keyframes dropdown-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-dropdown-in {
+    animation: dropdown-in 0.15s ease-out forwards;
+}
+
+/* ── Sheet slide-in animation ────────────────────────────────────────────── */
+
+@keyframes sheet-slide-in {
+    from { transform: translateX(100%); opacity: 0.6; }
+    to   { transform: translateX(0);    opacity: 1; }
+}
+
+.animate-sheet-in {
+    animation: sheet-slide-in 0.28s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+/* ── Table row flash animations ──────────────────────────────────────────── */
+
+@keyframes flash-up {
+    0% { background-color: rgba(34, 197, 94, 0.08); }
+    100% { background-color: transparent; }
+}
+
+@keyframes flash-down {
+    0% { background-color: rgba(239, 68, 68, 0.08); }
+    100% { background-color: transparent; }
+}
+
+.animate-flash-up {
+    animation: flash-up 2s ease-out forwards;
+}
+
+.animate-flash-down {
+    animation: flash-down 2s ease-out forwards;
+}
+
+/* ── Landing page floating orb animations ───────────────────────────────── */
+
+@keyframes float-slow {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+    }
+    33% {
+        transform: translate(30px, -30px) scale(1.1);
+    }
+    66% {
+        transform: translate(-20px, 20px) scale(0.9);
+    }
+}
+
+@keyframes float-slower {
+    0%, 100% {
+        transform: translate(0, 0);
+    }
+    50% {
+        transform: translate(40px, -40px);
+    }
+}
+
+@keyframes float-medium {
+    0%, 100% {
+        transform: translate(0, 0);
+    }
+    50% {
+        transform: translate(-30px, 30px);
+    }
+}
+
+.animate-float-slow {
+    animation: float-slow 15s ease-in-out infinite;
+}
+
+.animate-float-slower {
+    animation: float-slower 20s ease-in-out infinite;
+}
+
+.animate-float-medium {
+    animation: float-medium 12s ease-in-out infinite;
+}
+
+@keyframes scan-line {
+    0% {
+        top: 0;
+        opacity: 1;
+    }
+    100% {
+        top: 100%;
+        opacity: 0;
+    }
+}
+
+/* ── Sidebar animations ──────────────────────────────────────────────────── */
+
+@keyframes sidebar-slide-in {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes sidebar-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.animate-sidebar-in {
+    animation: sidebar-slide-in 0.25s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+.animate-sidebar-overlay {
+    animation: sidebar-fade-in 0.2s ease-out forwards;
+}
+
+/* ── Stat card pulse ─────────────────────────────────────────────────────── */
+
+@keyframes pulse-subtle {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.animate-pulse-subtle {
+    animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+
+@layer base {
+    ::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #e2e8f0;
+        border-radius: 10px;
+    }
+
+    .dark ::-webkit-scrollbar-thumb {
+        background: #334155;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #cbd5e1;
+    }
+
+    .dark ::-webkit-scrollbar-thumb:hover {
+        background: #475569;
+    }
+
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: #e2e8f0 transparent;
+    }
+
+    .dark * {
+        scrollbar-color: #334155 transparent;
+    }
+
+    /* Fix date/time input icons in dark mode */
+    input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator {
+        @apply dark:invert dark:opacity-70;
+    }
+}

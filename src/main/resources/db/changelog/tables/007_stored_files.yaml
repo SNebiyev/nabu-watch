@@ -1,0 +1,31 @@
+databaseChangeLog:
+  - changeSet:
+      id: 007-create-stored-files
+      author: nabu
+      comment: Metadata for files kept in object storage, such as screenshots.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE stored_files (
+                  id uuid DEFAULT gen_random_uuid() NOT NULL,
+                  organization_id uuid NOT NULL,
+                  entity_type character varying(50) NOT NULL,
+                  entity_id uuid NOT NULL,
+                  original_name character varying(500) NOT NULL,
+                  stored_name character varying(200) NOT NULL,
+                  storage_path character varying(1000) NOT NULL,
+                  content_type character varying(100) NOT NULL,
+                  file_size bigint NOT NULL,
+                  storage_provider character varying(20) DEFAULT 'MINIO' NOT NULL,
+                  bucket_name character varying(100) NOT NULL,
+                  temporary boolean DEFAULT false NOT NULL,
+                  expires_at timestamp with time zone,
+                  created_at timestamp with time zone DEFAULT now() NOT NULL,
+                  CONSTRAINT stored_files_pkey PRIMARY KEY (id),
+                  CONSTRAINT uq_stored_files_stored_name UNIQUE (stored_name),
+                  CONSTRAINT fk_stored_files_organization FOREIGN KEY (organization_id) REFERENCES organizations (id)
+              );
+
+              CREATE INDEX idx_stored_files_entity ON stored_files (entity_type, entity_id);
+              CREATE INDEX idx_stored_files_expires ON stored_files (expires_at) WHERE expires_at IS NOT NULL;
+              CREATE INDEX idx_stored_files_org ON stored_files (organization_id);

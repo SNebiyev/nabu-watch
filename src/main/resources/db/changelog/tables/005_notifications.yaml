@@ -1,0 +1,48 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-create-notifications
+      author: nabu
+      comment: In-app notifications for users.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE notifications (
+                  id uuid DEFAULT gen_random_uuid() NOT NULL,
+                  user_id uuid NOT NULL,
+                  title character varying(255) NOT NULL,
+                  message character varying(1000) NOT NULL,
+                  type character varying(30) NOT NULL,
+                  related_entity_id uuid,
+                  read boolean DEFAULT false NOT NULL,
+                  created_at timestamp with time zone DEFAULT now() NOT NULL,
+                  organization_id uuid,
+                  organization_name character varying(255),
+                  CONSTRAINT notifications_pkey PRIMARY KEY (id),
+                  CONSTRAINT fk_notifications_org_id FOREIGN KEY (organization_id) REFERENCES organizations (id) ON DELETE SET NULL,
+                  CONSTRAINT fk_notifications_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+              );
+
+              CREATE INDEX idx_notifications_org_id ON notifications (organization_id);
+              CREATE INDEX idx_notifications_user_id ON notifications (user_id);
+              CREATE INDEX idx_notifications_user_unread ON notifications (user_id, read);
+
+  - changeSet:
+      id: 005-create-internal-messages
+      author: nabu
+      comment: Direct messages between platform users.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE internal_messages (
+                  id uuid DEFAULT gen_random_uuid() NOT NULL,
+                  sender_id character varying(255) NOT NULL,
+                  receiver_id character varying(255) NOT NULL,
+                  content text NOT NULL,
+                  is_read boolean DEFAULT false NOT NULL,
+                  created_at timestamp with time zone DEFAULT now() NOT NULL,
+                  CONSTRAINT internal_messages_pkey PRIMARY KEY (id)
+              );
+
+              CREATE INDEX idx_internal_messages_receiver_id ON internal_messages (receiver_id);
+              CREATE INDEX idx_internal_messages_receiver_unread ON internal_messages (receiver_id, is_read);
+              CREATE INDEX idx_internal_messages_sender_id ON internal_messages (sender_id);

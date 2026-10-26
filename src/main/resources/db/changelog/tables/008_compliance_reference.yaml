@@ -1,0 +1,102 @@
+databaseChangeLog:
+  - changeSet:
+      id: 008-create-compliance-regions
+      author: nabu
+      comment: Regions with their own compliance rules.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE compliance_regions (
+                  id uuid DEFAULT gen_random_uuid() NOT NULL,
+                  code character varying(10) NOT NULL,
+                  name character varying(100) NOT NULL,
+                  active boolean DEFAULT true NOT NULL,
+                  global_default boolean DEFAULT false NOT NULL,
+                  CONSTRAINT compliance_regions_pkey PRIMARY KEY (id),
+                  CONSTRAINT uq_compliance_regions_code UNIQUE (code)
+              );
+
+              CREATE UNIQUE INDEX idx_compliance_regions_code ON compliance_regions (code);
+
+  - changeSet:
+      id: 008-create-compliance-monitor-types
+      author: nabu
+      comment: Document types that can be checked for compliance.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE compliance_monitor_types (
+                  id uuid DEFAULT gen_random_uuid() NOT NULL,
+                  sub_type_code character varying(30) NOT NULL,
+                  default_name character varying(100) NOT NULL,
+                  description character varying(500),
+                  CONSTRAINT compliance_monitor_types_pkey PRIMARY KEY (id),
+                  CONSTRAINT uq_compliance_monitor_types_code UNIQUE (sub_type_code)
+              );
+
+              CREATE UNIQUE INDEX idx_compliance_monitor_types_code ON compliance_monitor_types (sub_type_code);
+
+  - changeSet:
+      id: 008-create-compliance-region-rules
+      author: nabu
+      comment: Whether a document type is mandatory in a region.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE compliance_region_rules (
+                  id uuid DEFAULT gen_random_uuid() NOT NULL,
+                  region_id uuid NOT NULL,
+                  monitor_type_id uuid NOT NULL,
+                  mandatory boolean NOT NULL,
+                  active boolean DEFAULT true NOT NULL,
+                  CONSTRAINT compliance_region_rules_pkey PRIMARY KEY (id),
+                  CONSTRAINT uq_region_rule_region_type UNIQUE (region_id, monitor_type_id),
+                  CONSTRAINT fk_region_rules_monitor_type_id FOREIGN KEY (monitor_type_id) REFERENCES compliance_monitor_types (id),
+                  CONSTRAINT fk_region_rules_region_id FOREIGN KEY (region_id) REFERENCES compliance_regions (id)
+              );
+
+              CREATE INDEX idx_region_rules_monitor_type_id ON compliance_region_rules (monitor_type_id);
+              CREATE INDEX idx_region_rules_region_id ON compliance_region_rules (region_id);
+
+  - changeSet:
+      id: 008-create-compliance-keywords
+      author: nabu
+      comment: Keywords used to locate and recognise legal pages, by tier.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE compliance_keywords (
+                  id uuid DEFAULT gen_random_uuid() NOT NULL,
+                  region_rule_id uuid,
+                  monitor_type_id uuid,
+                  keyword character varying(255) NOT NULL,
+                  tier character varying(30) NOT NULL,
+                  CONSTRAINT compliance_keywords_pkey PRIMARY KEY (id),
+                  CONSTRAINT fk_comp_keywords_monitor_type_id FOREIGN KEY (monitor_type_id) REFERENCES compliance_monitor_types (id),
+                  CONSTRAINT fk_comp_keywords_region_rule_id FOREIGN KEY (region_rule_id) REFERENCES compliance_region_rules (id)
+              );
+
+              CREATE INDEX idx_comp_keywords_monitor_type_id ON compliance_keywords (monitor_type_id);
+              CREATE INDEX idx_comp_keywords_region_rule_id ON compliance_keywords (region_rule_id);
+
+  - changeSet:
+      id: 008-create-banner-keywords
+      author: nabu
+      comment: Phrases and button labels used to detect cookie banners.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE banner_keywords (
+                  id uuid DEFAULT gen_random_uuid() NOT NULL,
+                  region_id uuid NOT NULL,
+                  keyword_type character varying(20) NOT NULL,
+                  keyword character varying(255) NOT NULL,
+                  language_code character varying(5),
+                  active boolean DEFAULT true NOT NULL,
+                  CONSTRAINT banner_keywords_pkey PRIMARY KEY (id),
+                  CONSTRAINT ck_banner_keywords_type CHECK (keyword_type IN ('BANNER_PHRASE', 'ACCEPT', 'REJECT', 'PREF')),
+                  CONSTRAINT fk_banner_keywords_region_id FOREIGN KEY (region_id) REFERENCES compliance_regions (id)
+              );
+
+              CREATE INDEX idx_banner_keywords_region_type_active ON banner_keywords (region_id, keyword_type, active);
+              CREATE UNIQUE INDEX uq_banner_keywords_region_type_keyword ON banner_keywords (region_id, keyword_type, keyword);

@@ -1,0 +1,111 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-websites
+      author: nabu
+      comment: Monitored websites, owned by an organization.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE websites (
+                  id uuid DEFAULT gen_random_uuid() NOT NULL,
+                  added_by_user_id uuid,
+                  url character varying(2048) NOT NULL,
+                  region_code character varying(10) NOT NULL,
+                  status character varying(20) DEFAULT 'ACTIVE' NOT NULL,
+                  created_at timestamp with time zone DEFAULT now() NOT NULL,
+                  last_manual_scan_at timestamp with time zone,
+                  organization_id uuid NOT NULL,
+                  accepted_languages character varying(20) DEFAULT 'NATIVE_ONLY' NOT NULL,
+                  screenshots_enabled boolean DEFAULT false NOT NULL,
+                  compliance_grade character varying(3),
+                  compliance_score integer,
+                  preferred_fetch_mode character varying(20),
+                  fetch_mode_detected_at timestamp with time zone,
+                  verification_status character varying(20) DEFAULT 'UNVERIFIED' NOT NULL,
+                  verified_at timestamp with time zone,
+                  CONSTRAINT websites_pkey PRIMARY KEY (id),
+                  CONSTRAINT uq_websites_org_url UNIQUE (organization_id, url),
+                  CONSTRAINT fk_websites_org_id FOREIGN KEY (organization_id) REFERENCES organizations (id),
+                  CONSTRAINT fk_websites_user_id FOREIGN KEY (added_by_user_id) REFERENCES users (id)
+              );
+
+              CREATE INDEX idx_websites_org_id ON websites (organization_id);
+              CREATE INDEX idx_websites_region_code ON websites (region_code);
+              CREATE INDEX idx_websites_user_id ON websites (added_by_user_id);
+
+  - changeSet:
+      id: 002-create-website-verifications
+      author: nabu
+      comment: Domain ownership verification tokens and check state per website.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE website_verifications (
+                  id uuid NOT NULL,
+                  website_id uuid NOT NULL,
+                  token character varying(80) NOT NULL,
+                  status character varying(20) DEFAULT 'PENDING' NOT NULL,
+                  created_at timestamp with time zone DEFAULT now() NOT NULL,
+                  verified_at timestamp with time zone,
+                  expires_at timestamp with time zone NOT NULL,
+                  last_checked_at timestamp with time zone,
+                  check_count integer DEFAULT 0 NOT NULL,
+                  failure_reason character varying(200),
+                  expiry_warning_sent_at timestamp with time zone,
+                  CONSTRAINT website_verifications_pkey PRIMARY KEY (id),
+                  CONSTRAINT uq_website_verifications_token UNIQUE (token),
+                  CONSTRAINT uq_website_verifications_website_id UNIQUE (website_id),
+                  CONSTRAINT fk_website_verifications_website_id FOREIGN KEY (website_id) REFERENCES websites (id) ON DELETE CASCADE
+              );
+
+              CREATE INDEX idx_website_verifications_pending ON website_verifications (last_checked_at NULLS FIRST) WHERE status::text = 'PENDING';
+
+  - changeSet:
+      id: 002-create-website-compliance-paths
+      author: nabu
+      comment: Discovered locations of legal pages per website and document type.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE website_compliance_paths (
+                  id uuid DEFAULT gen_random_uuid() NOT NULL,
+                  website_id uuid NOT NULL,
+                  sub_type character varying(30) NOT NULL,
+                  discovered_url text NOT NULL,
+                  anchor_href text NOT NULL,
+                  anchor_text character varying(500) NOT NULL,
+                  dom_selector text,
+                  source character varying(20) NOT NULL,
+                  confidence character varying(10) NOT NULL,
+                  discovered_at timestamp with time zone DEFAULT now() NOT NULL,
+                  last_verified_at timestamp with time zone DEFAULT now() NOT NULL,
+                  fail_count integer DEFAULT 0 NOT NULL,
+                  CONSTRAINT website_compliance_paths_pkey PRIMARY KEY (id),
+                  CONSTRAINT uk_compliance_paths_website_subtype UNIQUE (website_id, sub_type),
+                  CONSTRAINT fk_compliance_paths_website_id FOREIGN KEY (website_id) REFERENCES websites (id) ON DELETE CASCADE
+              );
+
+              CREATE INDEX idx_compliance_paths_website_id ON website_compliance_paths (website_id);
+
+  - changeSet:
+      id: 002-create-abuse-reports
+      author: nabu
+      comment: Abuse reports filed against a website.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE abuse_reports (
+                  id uuid NOT NULL,
+                  website_id uuid NOT NULL,
+                  reporter_email character varying(255) NOT NULL,
+                  reporter_ip character varying(45),
+                  message text NOT NULL,
+                  status character varying(20) DEFAULT 'PENDING' NOT NULL,
+                  created_at timestamp with time zone DEFAULT now() NOT NULL,
+                  proof_deadline_at timestamp with time zone NOT NULL,
+                  resolved_at timestamp with time zone,
+                  CONSTRAINT abuse_reports_pkey PRIMARY KEY (id),
+                  CONSTRAINT fk_abuse_reports_website_id FOREIGN KEY (website_id) REFERENCES websites (id) ON DELETE CASCADE
+              );
+
+              CREATE INDEX idx_abuse_reports_website_status ON abuse_reports (website_id, status);

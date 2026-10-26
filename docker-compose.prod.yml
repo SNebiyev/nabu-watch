@@ -1,0 +1,257 @@
+services:
+
+  # ── Caddy (reverse proxy + automatic HTTPS) ─────────────────────────────────
+  caddy:
+    image: caddy:2-alpine
+    container_name: nabu-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Optional extra Caddy site snippets: any deploy/sites/<name>.caddy file is
+      # imported by the Caddyfile. Contents are gitignored (only .gitkeep is tracked).
+      - ./deploy/sites:/etc/caddy/sites:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    depends_on:
+      nabu-ui:
+        condition: service_healthy
+      nabu-api:
+        condition: service_healthy
+      grafana:
+        condition: service_started
+    networks:
+      - frontend
+      - backend
+
+  # ── Next.js Frontend ────────────────────────────────────────────────────────
+  nabu-ui:
+    build:
+      context: ./nabu-ui
+      args:
+        API_URL: http://nabu-api:8080
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://${DOMAIN:-localhost}}
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
+        NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${NEXT_PUBLIC_SENTRY_ENVIRONMENT:-production}
+        SENTRY_ORG: ${SENTRY_ORG:-}
+        SENTRY_PROJECT: ${SENTRY_PROJECT:-}
+        SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN:-}
+        # Analytics (optional, off when unset): point these at your own Umami instance.
+        NEXT_PUBLIC_SUPPORT_EMAIL: ${NEXT_PUBLIC_SUPPORT_EMAIL:-}
+        NEXT_PUBLIC_ABUSE_EMAIL: ${NEXT_PUBLIC_ABUSE_EMAIL:-}
+        NEXT_PUBLIC_SITE_NAME: ${NEXT_PUBLIC_SITE_NAME:-}
+        NEXT_PUBLIC_UMAMI_HOST: ${NEXT_PUBLIC_UMAMI_HOST:-}
+        NEXT_PUBLIC_UMAMI_WEBSITE_ID: ${NEXT_PUBLIC_UMAMI_WEBSITE_ID:-}
+    container_name: nabu-ui
+    restart: unless-stopped
+    environment:
+      API_URL: http://nabu-api:8080
+      NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
+      NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${NEXT_PUBLIC_SENTRY_ENVIRONMENT:-production}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://0.0.0.0:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - frontend
+      - backend
+
+  # ── Spring Boot API ─────────────────────────────────────────────────────────
+  nabu-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nabu-api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      STORAGE_ENDPOINT: http://minio:9000
+      FRONTEND_URL: ${FRONTEND_URL:-https://${DOMAIN:-localhost}}
+      NABU_BASE_URL: ${NABU_BASE_URL:-https://${DOMAIN:-localhost}}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - backend
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:17-alpine
+    container_name: nabu-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-nabu_watch}
+      POSTGRES_USER: ${DB_USER:-nabu}
+      POSTGRES_PASSWORD: ${DB_PASS:?DB_PASS is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - backend
+
+  # ── Redis ───────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: nabu-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --save 60 1
+      --loglevel warning
+      --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+    # Loopback only: lets the host-installed worker (systemd) reach Redis
+    # without exposing it to the network.
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - backend
+
+  # ── MinIO (S3-compatible object storage) ────────────────────────────────────
+  minio:
+    image: minio/minio:latest
+    container_name: nabu-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${STORAGE_ACCESS_KEY:?STORAGE_ACCESS_KEY is required}
+      MINIO_ROOT_PASSWORD: ${STORAGE_SECRET_KEY:?STORAGE_SECRET_KEY is required}
+    # Loopback only: lets the host-installed worker upload screenshots.
+    ports:
+      - "127.0.0.1:9000:9000"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - backend
+
+  # ── FlareSolverr (Cloudflare JS challenge bypass) ─────────────────────────
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: nabu-flaresolverr
+    restart: unless-stopped
+    environment:
+      LOG_LEVEL: info
+      TZ: UTC
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8191/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - backend
+
+  # ── Loki (log storage) ───────────────────────────────────────────────────
+  loki:
+    image: grafana/loki:3.4.2
+    container_name: nabu-loki
+    restart: unless-stopped
+    command: -config.file=/etc/loki/config.yml
+    volumes:
+      - ./deploy/loki-config.yml:/etc/loki/config.yml:ro
+      - loki_data:/loki
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3100/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - logging
+
+  # ── Promtail (log collector: Docker containers + Go worker systemd) ───────
+  promtail:
+    image: grafana/promtail:3.4.2
+    container_name: nabu-promtail
+    restart: unless-stopped
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - ./deploy/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/log/journal:/var/log/journal:ro
+      - /run/log/journal:/run/log/journal:ro
+      - /etc/machine-id:/etc/machine-id:ro
+    mem_limit: 128m
+    depends_on:
+      loki:
+        condition: service_healthy
+    networks:
+      - logging
+
+  # ── Grafana (log UI + future metrics dashboards) ─────────────────────────
+  grafana:
+    image: grafana/grafana:11.6.1
+    container_name: nabu-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?GRAFANA_PASSWORD is required}
+      GF_SERVER_ROOT_URL: https://logs.${DOMAIN:-localhost}
+      GF_SERVER_DOMAIN: logs.${DOMAIN:-localhost}
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./deploy/grafana-datasources.yml:/etc/grafana/provisioning/datasources/loki.yml:ro
+    mem_limit: 256m
+    depends_on:
+      loki:
+        condition: service_healthy
+    networks:
+      - logging
+      - frontend
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  caddy_data:
+  caddy_config:
+  loki_data:
+  grafana_data:
+
+networks:
+  frontend:
+  backend:
+  logging:

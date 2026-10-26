@@ -1,0 +1,192 @@
+# ============================================================
+# nabu-watch — mono-repo .gitignore
+# Covers: nabu-api (Spring Boot/Gradle), nabu-worker (Go),
+#         nabu-ui (Next.js), Docker, and common tooling
+# ============================================================
+
+
+# ── OS / Editor ──────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+Desktop.ini
+
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+
+# ── Secrets / Environment ─────────────────────────────────────
+.env
+.env.*
+!.env.example
+!.env.local.example
+*.pem
+*.key
+*.p12
+*.jks
+secrets/
+
+
+# ─────────────────────────────────────────────────────────────
+# nabu-api  (Spring Boot + Gradle — repo root)
+# ─────────────────────────────────────────────────────────────
+
+# Gradle build output
+build/
+.gradle/
+out/
+
+# Gradle wrapper jar is committed; caches are not
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# Spring Boot packaged jar
+*.jar
+!gradle/wrapper/*.jar
+
+# Compiled class files
+*.class
+
+# Log files written by the app
+*.log
+logs/
+
+# Spring Boot application-local config overrides
+application-local.yml
+application-local.yaml
+application-local.properties
+
+
+# ─────────────────────────────────────────────────────────────
+# nabu-worker  (Go — nabu-worker/)
+# ─────────────────────────────────────────────────────────────
+
+# Compiled binary
+nabu-worker/nabu-worker
+nabu-worker/*.exe
+
+# Go test cache and coverage output
+nabu-worker/coverage.out
+nabu-worker/coverage.html
+
+# Go module download cache (managed by the Go toolchain, not VCS)
+# go.sum IS committed; the download cache is not
+nabu-worker/vendor/
+nabu-worker/tmp/
+
+
+# ─────────────────────────────────────────────────────────────
+# nabu-test  (Rust CLI — nabu-test/)
+# ─────────────────────────────────────────────────────────────
+
+nabu-test/target/
+
+
+# ─────────────────────────────────────────────────────────────
+# nabu-ui  (Next.js / Node — nabu-ui/)
+# ─────────────────────────────────────────────────────────────
+
+# Dependencies
+nabu-ui/node_modules/
+
+# Next.js build output
+.next/
+nabu-ui/.next/
+nabu-ui/out/
+
+# Next.js cache
+nabu-ui/.next/cache/
+
+# Turbopack cache
+nabu-ui/.turbo/
+
+# next-env.d.ts is auto-generated — do not edit or commit
+nabu-ui/next-env.d.ts
+
+# TypeScript build info
+nabu-ui/*.tsbuildinfo
+nabu-ui/tsconfig.tsbuildinfo
+
+# Local env overrides (committed example files are fine)
+nabu-ui/.env.local
+nabu-ui/.env.development.local
+nabu-ui/.env.test.local
+nabu-ui/.env.production.local
+
+# Vercel deployment artifact
+nabu-ui/.vercel/
+
+# Bundle analyser output
+nabu-ui/.bundle-analyzer/
+
+
+# ─────────────────────────────────────────────────────────────
+# Docker
+# ─────────────────────────────────────────────────────────────
+
+# Docker override files (keep docker-compose.yml; ignore local overrides)
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Docker build context artefacts
+.dockerignore.local
+
+
+# ─────────────────────────────────────────────────────────────
+# Testing & Coverage
+# ─────────────────────────────────────────────────────────────
+
+# JUnit / Surefire reports
+build/reports/
+build/test-results/
+
+# Go coverage
+coverage.out
+coverage.html
+
+# Jest / Vitest
+nabu-ui/coverage/
+
+
+# ─────────────────────────────────────────────────────────────
+# Misc tooling
+# ─────────────────────────────────────────────────────────────
+
+# npm / pnpm lock files (we use package-lock.json)
+nabu-ui/yarn.lock
+nabu-ui/pnpm-lock.yaml
+
+# Playwright / Cypress test artefacts
+nabu-ui/test-results/
+nabu-ui/playwright-report/
+nabu-ui/cypress/screenshots/
+nabu-ui/cypress/videos/
+
+.agents/
+skills-lock.json
+.claude/
+.junie/
+.windsurf/
+.zencoder/
+
+# FlareSolverr standalone (local dev only — not deployed via git)
+/nabu-worker/flaresolverr/
+# Playwright runner output (root-level test-results when running e2e)
+test-results/
+
+# Local planning / scratch docs (per-session notes, not committed)
+
+# Optional extra Caddy site snippets (local to each install)
+deploy/sites/*
+!deploy/sites/.gitkeep

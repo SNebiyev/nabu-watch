@@ -1,0 +1,42 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-create-monitors
+      author: nabu
+      comment: Scheduled checks attached to a website, one per document type.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE monitors (
+                  id uuid DEFAULT gen_random_uuid() NOT NULL,
+                  website_id uuid NOT NULL,
+                  type character varying(20) NOT NULL,
+                  interval_minutes integer DEFAULT 60 NOT NULL,
+                  last_run_at timestamp with time zone,
+                  updated_at timestamp with time zone DEFAULT now() NOT NULL,
+                  target_url character varying(512),
+                  sub_type character varying(30) NOT NULL,
+                  active boolean DEFAULT true NOT NULL,
+                  created_at timestamp with time zone DEFAULT now() NOT NULL,
+                  created_by_user_id uuid,
+                  CONSTRAINT monitors_pkey PRIMARY KEY (id),
+                  CONSTRAINT fk_monitors_created_by_user_id FOREIGN KEY (created_by_user_id) REFERENCES users (id),
+                  CONSTRAINT fk_monitors_website_id FOREIGN KEY (website_id) REFERENCES websites (id) ON DELETE CASCADE
+              );
+
+              CREATE INDEX idx_monitors_active ON monitors (active);
+              CREATE INDEX idx_monitors_last_run_at ON monitors (last_run_at);
+              CREATE INDEX idx_monitors_website_id ON monitors (website_id);
+
+  - changeSet:
+      id: 003-create-monitor-type-interval-config
+      author: nabu
+      comment: Automatic scan interval per monitor sub type.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE monitor_type_interval_config (
+                  sub_type_code character varying(30) NOT NULL,
+                  auto_scan_interval_minutes integer NOT NULL,
+                  CONSTRAINT monitor_type_interval_config_pkey PRIMARY KEY (sub_type_code),
+                  CONSTRAINT monitor_type_interval_config_auto_scan_interval_minutes_check CHECK (auto_scan_interval_minutes >= 1)
+              );

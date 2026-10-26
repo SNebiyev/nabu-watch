@@ -1,0 +1,99 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-organizations
+      author: nabu
+      comment: Workspaces that own websites and monitors.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE organizations (
+                  id uuid DEFAULT gen_random_uuid() NOT NULL,
+                  name character varying(100) NOT NULL,
+                  created_at timestamp with time zone DEFAULT now() NOT NULL,
+                  updated_at timestamp with time zone DEFAULT now() NOT NULL,
+                  enabled boolean DEFAULT true NOT NULL,
+                  CONSTRAINT organizations_pkey PRIMARY KEY (id)
+              );
+
+  - changeSet:
+      id: 001-create-users
+      author: nabu
+      comment: Application accounts, including auth, profile and notification preferences.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE users (
+                  id uuid DEFAULT gen_random_uuid() NOT NULL,
+                  full_name character varying(100) NOT NULL,
+                  email character varying(255) NOT NULL,
+                  password_hash character varying(255),
+                  role character varying(20) DEFAULT 'USER' NOT NULL,
+                  status character varying(20) DEFAULT 'PENDING_VERIFICATION' NOT NULL,
+                  email_verified_at timestamp with time zone,
+                  last_login_at timestamp with time zone,
+                  created_at timestamp with time zone DEFAULT now() NOT NULL,
+                  updated_at timestamp with time zone DEFAULT now() NOT NULL,
+                  require_password_change boolean DEFAULT false NOT NULL,
+                  totp_secret character varying(64),
+                  totp_enabled boolean DEFAULT false NOT NULL,
+                  oauth_provider character varying(50),
+                  oauth_provider_id character varying(255),
+                  is_first_login boolean DEFAULT true NOT NULL,
+                  current_organization_id uuid,
+                  email_alerts_enabled boolean DEFAULT true NOT NULL,
+                  weekly_digest_enabled boolean DEFAULT true NOT NULL,
+                  deletion_requested_at timestamp with time zone,
+                  verification_status character varying(20) DEFAULT 'UNVERIFIED' NOT NULL,
+                  verified_at timestamp with time zone,
+                  verification_revoked_at timestamp with time zone,
+                  public_username character varying(40),
+                  public_profile_enabled boolean DEFAULT false NOT NULL,
+                  lifecycle_emails_enabled boolean DEFAULT true NOT NULL,
+                  CONSTRAINT users_pkey PRIMARY KEY (id),
+                  CONSTRAINT uq_users_email UNIQUE (email),
+                  CONSTRAINT uq_users_oauth_provider_id UNIQUE (oauth_provider, oauth_provider_id),
+                  CONSTRAINT fk_users_current_org_id FOREIGN KEY (current_organization_id) REFERENCES organizations (id)
+              );
+
+              CREATE UNIQUE INDEX uq_users_public_username ON users (lower(public_username::text)) WHERE public_username IS NOT NULL;
+
+  - changeSet:
+      id: 001-create-organization-members
+      author: nabu
+      comment: Membership of users in organizations, with their role.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE organization_members (
+                  id uuid DEFAULT gen_random_uuid() NOT NULL,
+                  organization_id uuid NOT NULL,
+                  user_id uuid NOT NULL,
+                  role character varying(20) DEFAULT 'MEMBER' NOT NULL,
+                  joined_at timestamp with time zone DEFAULT now() NOT NULL,
+                  CONSTRAINT organization_members_pkey PRIMARY KEY (id),
+                  CONSTRAINT uq_org_members_org_user UNIQUE (organization_id, user_id),
+                  CONSTRAINT fk_org_members_org_id FOREIGN KEY (organization_id) REFERENCES organizations (id) ON DELETE CASCADE,
+                  CONSTRAINT fk_org_members_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+              );
+
+              CREATE INDEX idx_org_members_user_id ON organization_members (user_id);
+
+  - changeSet:
+      id: 001-create-org-notification-settings
+      author: nabu
+      comment: Per-user alert and digest email preferences within an organization.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE org_notification_settings (
+                  id uuid DEFAULT gen_random_uuid() NOT NULL,
+                  organization_id uuid NOT NULL,
+                  user_id uuid NOT NULL,
+                  alerts_enabled boolean DEFAULT false NOT NULL,
+                  digest_enabled boolean DEFAULT false NOT NULL,
+                  updated_at timestamp with time zone DEFAULT now() NOT NULL,
+                  CONSTRAINT org_notification_settings_pkey PRIMARY KEY (id),
+                  CONSTRAINT uq_org_notif_org_user UNIQUE (organization_id, user_id),
+                  CONSTRAINT fk_org_notif_org_id FOREIGN KEY (organization_id) REFERENCES organizations (id) ON DELETE CASCADE,
+                  CONSTRAINT fk_org_notif_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+              );

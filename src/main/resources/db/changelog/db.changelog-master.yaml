@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/tables/001_organizations_users.yaml
+  - include:
+      file: db/changelog/tables/002_websites.yaml
+  - include:
+      file: db/changelog/tables/003_monitors.yaml
+  - include:
+      file: db/changelog/tables/004_scan_logs.yaml
+  - include:
+      file: db/changelog/tables/005_notifications.yaml
+  - include:
+      file: db/changelog/tables/006_webhooks.yaml
+  - include:
+      file: db/changelog/tables/007_stored_files.yaml
+  - include:
+      file: db/changelog/tables/008_compliance_reference.yaml
+  - include:
+      file: db/changelog/tables/009_seed_monitor_intervals.yaml
+  - include:
+      file: db/changelog/tables/010_seed_compliance.yaml
+  - include:
+      file: db/changelog/tables/011_seed_banner_keywords.yaml

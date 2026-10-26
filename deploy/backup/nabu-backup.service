@@ -1,0 +1,34 @@
+[Unit]
+Description=Nabu Watch daily backup (PostgreSQL + configs)
+Documentation=https://github.com/SNebiyev/nabu-watch
+# Postgres runs in Docker: a backup is pointless until the daemon is up.
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+# Optional (leading "-"): the install .env, so DB_NAME / PG_USER / BACKUP_ROOT etc. overrides reach the script.
+EnvironmentFile=-/opt/nabu-watch/.env
+ExecStart=/opt/nabu-watch/deploy/backup/nabu-backup.sh
+
+# Dump time grows with the database; 30 minutes is generous.
+TimeoutStartSec=1800
+
+# Background job: do not compete with live traffic for CPU/IO.
+Nice=10
+IOSchedulingClass=idle
+
+# Hardening. Write access only to the backup directory; everything else is
+# read-only. The script calls `docker exec`, so the docker socket is needed;
+# it stays reachable under ProtectSystem=strict.
+ProtectSystem=strict
+ReadWritePaths=/opt/backups
+PrivateTmp=true
+NoNewPrivileges=true
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=nabu-backup
+
+[Install]
+WantedBy=multi-user.target

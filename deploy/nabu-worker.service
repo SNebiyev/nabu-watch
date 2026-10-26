@@ -1,0 +1,49 @@
+[Unit]
+Description=Nabu Watch Go Worker
+Documentation=https://github.com/SNebiyev/nabu-watch
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Runs as the dedicated `nabu` user created by deploy/server-setup.sh.
+# /opt/nabu-worker must be owned by that user (the worker writes .consumer-id there).
+User=nabu
+Group=nabu
+WorkingDirectory=/opt/nabu-worker
+ExecStart=/opt/nabu-worker/nabu-worker-bin
+EnvironmentFile=/opt/nabu-worker/.env
+Restart=on-failure
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+# Shutdown / Chrome reaping
+#   KillMode=mixed: SIGTERM goes to the main process ONLY, so the Go worker
+#   gets a clean signal to run its graceful shutdown (headlessAlloc.Close(),
+#   which cancels the chromedp ExecAllocator and terminates Chrome). After
+#   TimeoutStopSec, SIGKILL is sent to the WHOLE cgroup — sweeping up any
+#   Chrome that's still alive. This only works when Chrome is a direct child
+#   in this unit's cgroup, i.e. a non-snap binary (google-chrome-stable). The
+#   snap chromium launches under user@0.service's own scope and escapes this
+#   cgroup, so it would NOT be reaped here — see setup_worker.sh.
+KillMode=mixed
+TimeoutStopSec=30
+# Memory ceiling: a runaway/leaky Chrome is contained to the unit's cgroup
+# (kernel reclaims/OOM-kills inside the unit) instead of pressuring the host
+# and risking the system OOM-killer hitting an unrelated service.
+MemoryHigh=1500M
+MemoryMax=2G
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=nabu-worker
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/tmp /opt/nabu-worker
+
+[Install]
+WantedBy=multi-user.target

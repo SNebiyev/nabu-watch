@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: 009-seed-monitor-type-intervals
+      author: nabu
+      comment: Default automatic scan interval per monitor sub type.
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO monitor_type_interval_config (sub_type_code, auto_scan_interval_minutes) VALUES
+                ('COOKIE_BANNER', 15),
+                ('COOKIE_POLICY', 15),
+                ('GDPR_REQUEST', 15),
+                ('IMPRESSUM', 15),
+                ('PRIVACY_POLICY', 15),
+                ('SSL', 1440),
+                ('TERMS_OF_SERVICE', 15),
+                ('TRACKER_DETECTION', 15);

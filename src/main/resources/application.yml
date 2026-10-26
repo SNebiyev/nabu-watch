@@ -1,0 +1,198 @@
+spring:
+  application:
+    name: nabu-watch
+
+  threads:
+    virtual:
+      enabled: true
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: UTC
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:nabu_watch}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASS:admin}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: NabuHikariPool
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        default_schema: public
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 2
+          max-wait: 1000ms
+
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: ${MAIL_AUTH:false}
+      mail.smtp.starttls.enable: ${MAIL_STARTTLS:false}
+
+  thymeleaf:
+    enabled: false
+
+  # ── OAuth2 Client (Google + GitHub) ──────────────────────────────────────────
+  # Override the four env vars in production:
+  #   GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET
+  #   GITHUB_CLIENT_ID  / GITHUB_CLIENT_SECRET
+  # Redirect URIs to register in each provider's developer console:
+  #   Google:  https://console.cloud.google.com/apis/credentials
+  #             → Authorised redirect URI: {backendUrl}/login/oauth2/code/google
+  #   GitHub:  https://github.com/settings/developers
+  #             → Authorization callback URL: {backendUrl}/login/oauth2/code/github
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:unused}
+            client-secret: ${GOOGLE_CLIENT_SECRET:unused}
+            scope:
+              - openid
+              - email
+              - profile
+          github:
+            client-id: ${GITHUB_CLIENT_ID:unused}
+            client-secret: ${GITHUB_CLIENT_SECRET:unused}
+            scope:
+              - read:user
+              - user:email
+
+management:
+  health:
+    mail:
+      # An unreachable SMTP server must not mark the app DOWN (fails container health checks)
+      enabled: ${MANAGEMENT_HEALTH_MAIL_ENABLED:false}
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+  forward-headers-strategy: framework
+
+nabu:
+  # URL the OAuth2 success handler redirects to after issuing the JWT
+  frontend-url: ${FRONTEND_URL:http://localhost:3000}
+
+  scheduler:
+    cron: "0 */10 * * * *"   # Every 10 minutes at second :00
+    batch-size: 100           # Monitors processed per DB round-trip
+
+  jwt:
+    # HS256 secret, REQUIRED, at least 32 chars (256 bits). No default: startup fails
+    # without it. Generate one with: openssl rand -base64 48
+    secret: ${JWT_SECRET:}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}   # 24 h
+
+  mail:
+    from: ${MAIL_FROM:noreply@localhost}
+    # Contact address shown to site owners in abuse/appeal emails. Defaults to the sender address.
+    abuse-email: ${ABUSE_EMAIL:${MAIL_FROM:noreply@localhost}}
+    base-url: ${NABU_BASE_URL:http://localhost:3000}
+    # Comma-separated list of internal addresses to notify on new user signup.
+    # Leave empty to disable.
+    admin-notify: ${ADMIN_NOTIFY_EMAILS:}
+
+  admin:
+    # Email of the account that becomes ADMIN once it is ACTIVE (email verified, or an OAuth
+    # login with a verified provider email). Empty disables the bootstrap.
+    bootstrap-email: ${NABU_BOOTSTRAP_ADMIN_EMAIL:}
+
+  storage:
+    provider: ${STORAGE_PROVIDER:minio}
+    endpoint: ${STORAGE_ENDPOINT:http://localhost:9000}
+    access-key: ${STORAGE_ACCESS_KEY:minioadmin}
+    secret-key: ${STORAGE_SECRET_KEY:minioadmin}
+    bucket: ${STORAGE_BUCKET:nabu-files}
+
+  scan:
+    domain-cooldown-minutes: ${SCAN_DOMAIN_COOLDOWN_MINUTES:15}          # min gap between scans of one hostname
+    manual-rescan-cooldown-minutes: ${SCAN_MANUAL_COOLDOWN_MINUTES:30}   # per website
+    default-interval-minutes: ${SCAN_DEFAULT_INTERVAL_MINUTES:1440}      # fallback when no row in monitor_type_interval_config
+
+  scan-history:
+    limit: ${SCAN_HISTORY_LIMIT:90}                                      # scan batches returned per website
+
+  websites:
+    pending-verification-limit: ${PENDING_VERIFICATION_LIMIT:5}          # unverified sites per user per window; 0 = unlimited
+    pending-verification-window-days: ${PENDING_VERIFICATION_WINDOW_DAYS:30}
+
+  tools:
+    # Public scan endpoints (anonymous SSL/cookie/impressum/etc. checks) under /api/v1/tools/*.
+    turnstile:
+      # When false, the controllers skip Cloudflare Turnstile verification entirely
+      # — intended for local dev where you don't want to register a Turnstile widget.
+      # In production set TOOLS_TURNSTILE_ENABLED=true and provide the real keys.
+      enabled: ${TOOLS_TURNSTILE_ENABLED:false}
+      secret-key: ${TOOLS_TURNSTILE_SECRET_KEY:}
+      verify-url: https://challenges.cloudflare.com/turnstile/v0/siteverify
+    rate-limit:
+      # Anonymous user budgets (Redis-backed). Defaults are conservative; tune as needed.
+      per-ip-per-hour: ${TOOLS_RL_IP_HOUR:3}
+      per-ip-per-day: ${TOOLS_RL_IP_DAY:10}
+      per-domain-per-10min: ${TOOLS_RL_DOMAIN_10M:1}
+    cache:
+      # How long to reuse a successful scan result for the same URL.
+      ttl-seconds: ${TOOLS_CACHE_TTL:900}
+    url-validator:
+      # Hostnames that bypass the validator's private-IP rejection. Empty by default.
+      # Only needed if the API must scan its own public hostname (which Docker DNS may
+      # resolve to a private address). Comma-separated.
+      self-hosts: ${TOOLS_URL_VALIDATOR_SELF_HOSTS:}
+
+  # ── AI Remediation (Google Gemini) ──────────────────────────────────────────
+  # Provides the "Ask AI to help me fix this" feature on security-audit
+  # findings. Disabled when api-key is blank (the endpoint returns 503).
+  ai:
+    gemini:
+      api-key: ${GEMINI_API_KEY:}
+      model: ${GEMINI_MODEL:gemini-3.1-flash-lite-preview}
+      base-url: https://generativelanguage.googleapis.com/v1beta/models
+    remediation:
+      # Per-org daily cap on AI remediation requests (Redis-backed).
+      per-org-per-day: ${AI_REMEDIATION_PER_ORG_PER_DAY:20}
+
+logging:
+  level:
+    watch.nabu: INFO
+    org.springframework.data.redis: WARN
+    liquibase: INFO

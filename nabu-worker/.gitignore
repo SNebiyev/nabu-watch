@@ -1,0 +1,8 @@
+tmp/
+.consumer-id
+
+# FlareSolverr standalone (local dev only — not deployed via git)
+flaresolverr/venv/
+flaresolverr/__pycache__/
+flaresolverr/src/__pycache__/
+flaresolverr/src/undetected_chromedriver/__pycache__/

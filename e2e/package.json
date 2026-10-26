@@ -1,0 +1,31 @@
+{
+  "name": "nabu-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "description": "Full regression e2e test suite for nabu-watch (Playwright + TypeScript).",
+  "scripts": {
+    "test": "playwright test",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:regression": "playwright test --grep @regression",
+    "test:admin": "playwright test --grep @admin",
+    "test:chromium": "playwright test --project=chromium",
+    "test:mobile": "playwright test --project='mobile-chrome'",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:debug": "PWDEBUG=1 playwright test",
+    "report": "playwright show-report",
+    "install:browsers": "playwright install --with-deps chromium firefox webkit",
+    "seed:clean": "ts-node scripts/clean-test-users.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^22.10.0",
+    "@types/pg": "^8.11.10",
+    "dotenv": "^16.4.7",
+    "ioredis": "^5.4.1",
+    "pg": "^8.13.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  }
+}

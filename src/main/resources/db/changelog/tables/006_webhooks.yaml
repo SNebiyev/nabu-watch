@@ -1,0 +1,49 @@
+databaseChangeLog:
+  - changeSet:
+      id: 006-create-webhook-configs
+      author: nabu
+      comment: Outgoing webhook endpoints configured per organization.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE webhook_configs (
+                  id uuid DEFAULT gen_random_uuid() NOT NULL,
+                  organization_id uuid NOT NULL,
+                  name character varying(100) NOT NULL,
+                  url character varying(2048) NOT NULL,
+                  secret character varying(255),
+                  type character varying(20) DEFAULT 'GENERIC' NOT NULL,
+                  enabled boolean DEFAULT true NOT NULL,
+                  created_at timestamp with time zone DEFAULT now() NOT NULL,
+                  updated_at timestamp with time zone DEFAULT now() NOT NULL,
+                  CONSTRAINT webhook_configs_pkey PRIMARY KEY (id),
+                  CONSTRAINT fk_webhook_configs_org_id FOREIGN KEY (organization_id) REFERENCES organizations (id) ON DELETE CASCADE
+              );
+
+              CREATE INDEX idx_webhook_configs_org_id ON webhook_configs (organization_id);
+
+  - changeSet:
+      id: 006-create-webhook-deliveries
+      author: nabu
+      comment: Delivery attempts and retry state for outgoing webhooks.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE webhook_deliveries (
+                  id uuid DEFAULT gen_random_uuid() NOT NULL,
+                  webhook_config_id uuid NOT NULL,
+                  event_type character varying(50) NOT NULL,
+                  payload jsonb NOT NULL,
+                  status character varying(20) DEFAULT 'PENDING' NOT NULL,
+                  attempt_count integer DEFAULT 0 NOT NULL,
+                  last_attempt_at timestamp with time zone,
+                  next_retry_at timestamp with time zone,
+                  response_status integer,
+                  error_message character varying(500),
+                  created_at timestamp with time zone DEFAULT now() NOT NULL,
+                  CONSTRAINT webhook_deliveries_pkey PRIMARY KEY (id),
+                  CONSTRAINT fk_webhook_deliveries_config_id FOREIGN KEY (webhook_config_id) REFERENCES webhook_configs (id) ON DELETE CASCADE
+              );
+
+              CREATE INDEX idx_webhook_deliveries_config_id ON webhook_deliveries (webhook_config_id);
+              CREATE INDEX idx_webhook_deliveries_retry ON webhook_deliveries (next_retry_at, status);

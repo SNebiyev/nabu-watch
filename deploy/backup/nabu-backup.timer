@@ -1,0 +1,15 @@
+[Unit]
+Description=Nabu Watch daily backup timer
+Documentation=https://github.com/SNebiyev/nabu-watch
+
+[Timer]
+# Every night at 03:15 UTC: low traffic, and clear of apt-daily (06:00-07:00)
+# and logrotate (00:00).
+OnCalendar=*-*-* 03:15:00
+# Random 15-minute spread so it does not hit IO at the same second as other timers.
+RandomizedDelaySec=900
+# If the machine was off at the scheduled time, run the missed job on boot.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

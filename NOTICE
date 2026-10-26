@@ -1,0 +1,23 @@
+nabu-watch
+Copyright 2026 Samir Nabiyev
+
+This product includes software developed by Samir Nabiyev.
+
+This product includes software developed by Bogdan Finn
+(github.com/bogdanfinn/tls-client), used under the BSD 4-Clause License.
+It also depends on github.com/bogdanfinn/fhttp, a fork of the Go net/http
+package, whose upstream repository does not publish a separate license file.
+
+Portions of the JavaScript library vulnerability signatures in
+src/main/java/watch/nabu/application/security/JsLibraryCveInspector.java
+are derived from Retire.js (https://github.com/RetireJS/retire.js),
+Copyright 2018 Erlend Oftedal, licensed under the Apache License 2.0.
+
+site/index.html contains icon path data from Lucide (https://lucide.dev),
+ISC License, Copyright (c) Lucide Icons and Contributors; portions derived
+from Feather, MIT License, Copyright (c) 2013-2023 Cole Bemis.
+
+Product names, logos and brands mentioned are property of their respective
+owners. The Apache License 2.0 grants no trademark rights (section 6).
+
+Third-party dependencies are distributed under their own licenses.

@@ -1,0 +1,12 @@
+.gradle
+build
+.git
+.idea
+*.iml
+out
+e2e
+test-results
+playwright-report
+nabu-test
+nabu-ui
+nabu-worker
