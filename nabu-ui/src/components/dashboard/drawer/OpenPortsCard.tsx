@@ -2,7 +2,7 @@
 
 import {useState} from "react";
 import type {MouseEvent} from "react";
-import {AlertTriangle, CheckCircle2, ChevronDown, Loader2, Network} from "lucide-react";
+import {AlertTriangle, CheckCircle2, ChevronDown, Info, Loader2, Network} from "lucide-react";
 import {apiClient} from "@/lib/apiClient";
 import {scoreTone} from "./utils";
 import {remediationFor} from "./securityRemediation";
@@ -21,6 +21,8 @@ interface OpenPortsResult {
   verdict?: string;
   findings?: Finding[];
   error?: string;
+  cdn?: string | null;
+  note?: string | null;
 }
 
 export function OpenPortsCard({websiteId}: {websiteId: string}) {
@@ -92,18 +94,30 @@ export function OpenPortsCard({websiteId}: {websiteId: string}) {
 function ResultPanel({result, websiteId}: {result: OpenPortsResult; websiteId: string}) {
   const findings = result.findings ?? [];
   const score = result.score ?? 0;
+  const behindCdn = !!result.cdn;
   return (
     <div className="mt-4 ml-0 sm:ml-11 rounded-lg border border-amber-400/20 bg-slate-900/40 p-2.5 sm:p-3 overflow-hidden">
       <div className="flex items-center justify-between mb-3">
-        <p className={`text-2xl font-bold ${scoreTone(score)}`}>
-          {score}<span className="text-xs text-slate-500">/100</span>
+        <p className={`text-2xl font-bold ${behindCdn ? "text-slate-400" : scoreTone(score)}`}>
+          {behindCdn ? "N/A" : <>{score}<span className="text-xs text-slate-500">/100</span></>}
         </p>
         <span className="text-xs text-slate-300">{result.verdict}</span>
       </div>
+      {result.note && (
+        <p className="mb-3 flex items-start gap-1.5 text-[11px] text-sky-600 dark:text-sky-300">
+          <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" /> {result.note}
+        </p>
+      )}
       {findings.length === 0 ? (
-        <div className="flex items-center gap-2 text-xs text-emerald-400">
-          <CheckCircle2 className="h-3.5 w-3.5" /> All probed ports closed.
-        </div>
+        behindCdn ? (
+          <div className="flex items-center gap-2 text-xs text-slate-300">
+            <Info className="h-3.5 w-3.5" /> No unexpected ports open on the CDN edge.
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 text-xs text-emerald-400">
+            <CheckCircle2 className="h-3.5 w-3.5" /> All probed ports closed.
+          </div>
+        )
       ) : (
         <div className="space-y-1.5">
           {findings.map((f) => (

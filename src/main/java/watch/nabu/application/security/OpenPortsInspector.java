@@ -28,6 +28,12 @@ import java.util.concurrent.TimeUnit;
  *   6379 Redis   8080 alt HTTP    9000 PHP-FPM / Portainer
  * </pre>
  * 80 and 443 are deliberately excluded: they are expected to be open.
+ *
+ * <p>The probe sees whatever the hostname resolves to. Behind a CDN that is the CDN's edge,
+ * not the origin server, so the origin's ports cannot be tested. Cloudflare is recognised
+ * ({@link CloudflareRanges}): ports its edge serves for every proxied site (8080 here) are
+ * ignored and the result carries a note. Other open ports are still reported. Other CDNs
+ * are not recognised yet.
  */
 @Slf4j
 @Service
@@ -45,6 +51,9 @@ public class OpenPortsInspector {
             new PortProbe(9000, "PHP-FPM",    "FastCGI / admin UI")
     );
 
+    static final String CDN_NOTE = "Behind Cloudflare: these probes reach Cloudflare's edge, not your server. "
+            + "Check the origin firewall directly.";
+
     private final ToolUrlValidator urlValidator;
 
     public Result inspect(String websiteUrl) {
@@ -57,15 +66,22 @@ public class OpenPortsInspector {
         InetAddress address = resolved.address();
         String host = resolved.uri().getHost();
 
-        List<Finding> findings = probeInParallel(address);
+        boolean cloudflare = CloudflareRanges.contains(address);
+        List<Finding> findings = probeInParallel(address).stream()
+                .filter(f -> !cloudflare || !CloudflareRanges.EDGE_PORTS.contains(f.port()))
+                .toList();
         int score = findings.isEmpty() ? 100 : Math.max(0, 100 - findings.size() * 20);
         String verdict = findings.isEmpty()
                 ? "No unexpected ports open"
                 : findings.size() + " unexpected port" + (findings.size() == 1 ? "" : "s") + " open";
-        return new Result(true, host, score, verdict, findings, null);
+        if (!cloudflare) {
+            return new Result(true, host, score, verdict, findings, null, null, null);
+        }
+        if (findings.isEmpty()) verdict = "Origin ports not tested (behind Cloudflare)";
+        return new Result(true, host, score, verdict, findings, null, CloudflareRanges.NAME, CDN_NOTE);
     }
 
-    private static List<Finding> probeInParallel(InetAddress address) {
+    private List<Finding> probeInParallel(InetAddress address) {
         var pool = Executors.newFixedThreadPool(PORTS.size());
         try {
             List<CompletableFuture<Finding>> tasks = PORTS.stream()
@@ -92,7 +108,8 @@ public class OpenPortsInspector {
         }
     }
 
-    private static boolean isOpen(InetAddress address, int port) {
+    // Package-private so tests can replace the network probe.
+    boolean isOpen(InetAddress address, int port) {
         try (Socket s = new Socket()) {
             s.connect(new InetSocketAddress(address, port), CONNECT_TIMEOUT_MS);
             return true;
@@ -111,10 +128,12 @@ public class OpenPortsInspector {
             int score,
             String verdict,
             List<Finding> findings,
-            String error) {
+            String error,
+            String cdn,
+            String note) {
 
         public static Result failed(String host, String error) {
-            return new Result(false, host, 0, null, List.of(), error);
+            return new Result(false, host, 0, null, List.of(), error, null, null);
         }
     }
 }

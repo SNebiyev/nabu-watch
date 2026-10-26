@@ -113,6 +113,12 @@ echo "JWT_SECRET=$(openssl rand -base64 48)" > .env.local   # loaded by `bootRun
 Exercise the worker with `cd nabu-test && cargo run --release -- scan https://example.com`.
 Build and test commands for every component are in [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Known limitations
+
+- Network checks such as Open Ports see the CDN edge, not your origin, when a site sits behind a CDN or reverse
+  proxy. Cloudflare is recognised and the ports its edge serves for every proxied site are ignored, with a note in
+  the result. Other CDNs are not recognised yet, so firewall the origin and check it directly.
+
 ## Responsible use
 
 nabu-watch is for auditing sites you own, operate, or are authorized to audit. Read
